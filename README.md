@@ -1,52 +1,60 @@
-''' cmd
-
-
-mdaaa
-
 #include <iostream>
-#include <vector>
+#include <map>
+#include <set>
 #include <string>
-#include <algorithm>
 
 using namespace std;
 
 int main() {
+    map<string, set<string>> components;
+
     int Q;
     cin >> Q;
-    
-    vector<bool> ochered;  
-    
+
     for (int i = 0; i < Q; ++i) {
-        string op;
-        cin >> op;
         
-        if (op == "ARRIVE") {
-            int k;
-            cin >> k;
-            if (k > 0) {
-                ochered.insert(ochered.end(), k, false);//не пуш бэк потому что можно //без цикла обойтись
-            } else {
-                //удаляем пакеты с конца
-                int antiminus = -k;
-                ochered.resize(ochered.size() - antiminus);
+        string cmd;
+        cin >> cmd;
+
+        if (cmd == "ADD") {
+            string ip1, ip2;
+            cin >> ip1 >> ip2;
+
+            if (components.find(ip1) == components.end())//не нашли нужный ip в мэп, //делаем ему свое множество
+                components[ip1] = {ip1};
+            if (components.find(ip2) == components.end())
+                components[ip2] = {ip2};
+
+            //ссылки на множества
+            set<string>& s1 = components[ip1];
+            set<string>& s2 = components[ip2];
+
+            if (s1 == s2) continue;
+
+            set<string> podset = s1;
+            podset.insert(s2.begin(), s2.end()); //пихаем их в одну подсеть
+
+            for (const string& ip : podset) { //переписываем значение для каждого //адреса из созданной подсети
+                components[ip] = podset;
             }
         }
-        else if (op == "PRIORITY") {
-            int i;
-            cin >> i;
-            ochered[i] = true;
+        else if (cmd == "COUNT") {
+            string ip;
+            cin >> ip;
+            if (components.find(ip) == components.end())
+                cout << 1 << endl; 
+            else
+                cout << (components[ip].size() - 1)<< endl;
         }
-        else if (op == "NORMAL") {
-            int i;
-            cin >> i;
-            ochered[i] = false;
-        }
-        else if (op == "PRIORITY_COUNT") {
-            int cnt = count(ochered.begin(), ochered.end(), true);
-            cout << cnt << endl;
+        else if (cmd == "CHECK") {
+            string ip1, ip2;
+            cin >> ip1 >> ip2;
+            if (components.find(ip1) == components.end() || components.find(ip2) == components.end()) //если адреса не встр. до этого, то они точно в //разных
+                cout << "NO" << endl;
+            else
+                cout << (components[ip1].count(ip2) ? "YES" : "NO") << endl;
         }
     }
-    
+
     return 0;
 }
-'''
